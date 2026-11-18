@@ -10,6 +10,8 @@
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
     tailwind.config = {
@@ -202,7 +204,7 @@
             <p class="text-[11px] text-stone-300 mt-1 line-clamp-2 leading-tight item-desc">۱۰۰٪ عربیکا تازه برشت با آروما و تلخی متعادل برای تمرکز روی کتاب</p>
           </div>
           <div class="text-left font-bold text-book-gold text-sm pt-1">
-            ۶۵,۰۰۰ <span class="text-[10px] text-stone-400 font-normal">تومان</span>
+            <span class="menu-price" data-product-id="espresso">۶۵,۰۰۰</span> <span class="text-[10px] text-stone-400 font-normal">تومان</span>
           </div>
         </div>
       </div>
@@ -221,7 +223,7 @@
             <p class="text-[11px] text-stone-300 mt-1 line-clamp-2 leading-tight item-desc">اسپرسو دوبل با فوم کرمی و مخملی شیر تازه</p>
           </div>
           <div class="text-left font-bold text-book-gold text-sm pt-1">
-            ۸۵,۰۰۰ <span class="text-[10px] text-stone-400 font-normal">تومان</span>
+            <span class="menu-price" data-product-id="latte">۸۵,۰۰۰</span> <span class="text-[10px] text-stone-400 font-normal">تومان</span>
           </div>
         </div>
       </div>
@@ -243,7 +245,7 @@
             <p class="text-[11px] text-stone-300 mt-1 line-clamp-2 leading-tight item-desc">ترکیب گل‌گاوزبان، به‌لیمو، بابونه، بهارنارنج و نبات دارچینی</p>
           </div>
           <div class="text-left font-bold text-book-gold text-sm pt-1">
-            ۷۵,۰۰۰ <span class="text-[10px] text-stone-400 font-normal">تومان</span>
+            <span class="menu-price" data-product-id="herbal-tea">۷۵,۰۰۰</span> <span class="text-[10px] text-stone-400 font-normal">تومان</span>
           </div>
         </div>
       </div>
@@ -262,7 +264,7 @@
             <p class="text-[11px] text-stone-300 mt-1 line-clamp-2 leading-tight item-desc">ترکیب ادویه‌های گرم زنجبیل، دارچین و هل دم‌شده با شیر داغ</p>
           </div>
           <div class="text-left font-bold text-book-gold text-sm pt-1">
-            ۸۰,۰۰۰ <span class="text-[10px] text-stone-400 font-normal">تومان</span>
+            <span class="menu-price" data-product-id="masala-tea">۸۰,۰۰۰</span> <span class="text-[10px] text-stone-400 font-normal">تومان</span>
           </div>
         </div>
       </div>
@@ -281,7 +283,7 @@
             <p class="text-[11px] text-stone-300 mt-1 line-clamp-2 leading-tight item-desc">برگ تازه نعنا، لیمو ترش طبیعی، سیروپ بار و سودای خنک</p>
           </div>
           <div class="text-left font-bold text-book-gold text-sm pt-1">
-            ۸۵,۰۰۰ <span class="text-[10px] text-stone-400 font-normal">تومان</span>
+            <span class="menu-price" data-product-id="mojito">۸۵,۰۰۰</span> <span class="text-[10px] text-stone-400 font-normal">تومان</span>
           </div>
         </div>
       </div>
@@ -300,7 +302,7 @@
             <p class="text-[11px] text-stone-300 mt-1 line-clamp-2 leading-tight item-desc">بستنی خامه‌ای با نوتلا ایتالیایی و خلال فندق رست‌شده</p>
           </div>
           <div class="text-left font-bold text-book-gold text-sm pt-1">
-            ۹۵,۰۰۰ <span class="text-[10px] text-stone-400 font-normal">تومان</span>
+            <span class="menu-price" data-product-id="nutella-shake">۹۵,۰۰۰</span> <span class="text-[10px] text-stone-400 font-normal">تومان</span>
           </div>
         </div>
       </div>
@@ -322,7 +324,7 @@
             <p class="text-[11px] text-stone-300 mt-1 line-clamp-2 leading-tight item-desc">پخت روز با مغز گردو فراوان و فراستینگ پنیر خامه‌ای لایت</p>
           </div>
           <div class="text-left font-bold text-book-gold text-sm pt-1">
-            ۸۰,۰۰۰ <span class="text-[10px] text-stone-400 font-normal">تومان</span>
+            <span class="menu-price" data-product-id="carrot-cake">۸۰,۰۰۰</span> <span class="text-[10px] text-stone-400 font-normal">تومان</span>
           </div>
         </div>
       </div>
@@ -341,7 +343,7 @@
             <p class="text-[11px] text-stone-300 mt-1 line-clamp-2 leading-tight item-desc">بافت ابریشمی با سس شکلات گرم بلژیکی</p>
           </div>
           <div class="text-left font-bold text-book-gold text-sm pt-1">
-            ۱۰۵,۰۰۰ <span class="text-[10px] text-stone-400 font-normal">تومان</span>
+            <span class="menu-price" data-product-id="cheesecake">۱۰۵,۰۰۰</span> <span class="text-[10px] text-stone-400 font-normal">تومان</span>
           </div>
         </div>
       </div>
@@ -453,6 +455,31 @@
         }
       });
     }
+  </script>
+
+
+  <!-- بارگذاری قیمت‌های به‌روز از پایگاه داده -->
+  <script>
+    // این دو مقدار را از Project Settings > API در پنل Supabase بردارید.
+    const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+    async function loadLatestPrices() {
+      if (SUPABASE_URL.startsWith('YOUR_') || SUPABASE_ANON_KEY.startsWith('YOUR_')) return;
+      const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const { data, error } = await client.from('menu_items').select('id, price');
+      if (error) {
+        console.error('Could not load menu prices:', error.message);
+        return;
+      }
+      data.forEach(item => {
+        const priceElement = document.querySelector(`.menu-price[data-product-id="${item.id}"]`);
+        if (priceElement) {
+          priceElement.textContent = new Intl.NumberFormat('fa-IR').format(item.price);
+        }
+      });
+    }
+    document.addEventListener('DOMContentLoaded', loadLatestPrices);
   </script>
 
 </body>

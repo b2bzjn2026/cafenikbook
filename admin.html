@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مدیریت قیمت‌ها | کافه کتاب نیک</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>body{font-family:Vazirmatn,sans-serif;background:#0e0d0c;color:#f6f4f0;min-height:100vh}</style>
+</head>
+<body class="p-4">
+  <main class="max-w-xl mx-auto py-8">
+    <header class="text-center mb-8">
+      <h1 class="text-2xl font-black text-amber-400">پنل مدیریت کافه کتاب نیک</h1>
+      <p class="text-sm text-stone-400 mt-2">مدیریت قیمت محصولات منو</p>
+    </header>
+
+    <section id="login-panel" class="bg-stone-900 border border-amber-500/20 rounded-2xl p-5">
+      <h2 class="font-bold mb-4">ورود مدیر</h2>
+      <form id="login-form" class="space-y-3">
+        <label class="block text-sm">ایمیل مدیر</label>
+        <input id="email" type="email" autocomplete="username" required class="w-full rounded-xl bg-stone-800 border border-stone-700 p-3 text-white" placeholder="admin@example.com">
+        <label class="block text-sm">رمز عبور</label>
+        <input id="password" type="password" autocomplete="current-password" required class="w-full rounded-xl bg-stone-800 border border-stone-700 p-3 text-white" placeholder="رمز عبور">
+        <button class="w-full rounded-xl bg-amber-500 text-black font-bold p-3" type="submit">ورود به پنل</button>
+      </form>
+    </section>
+
+    <section id="manager-panel" class="hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-bold">قیمت محصولات</h2>
+        <button id="logout" class="text-sm text-amber-400 underline">خروج</button>
+      </div>
+      <div id="items" class="space-y-3"></div>
+    </section>
+    <p id="status" role="status" class="text-sm mt-5 text-center text-stone-300"></p>
+    <a href="./index.html" class="block text-center text-amber-400 text-sm mt-8">بازگشت به منوی کافه</a>
+  </main>
+
+  <script>
+    // این دو مقدار را از Project Settings > API در پنل Supabase وارد کنید.
+    const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const PRODUCT_NAMES = {
+      'espresso':'اسپرسو دوبل تخصصی',
+      'latte':'کافه لاته / کارامل لاته',
+      'herbal-tea':'دمنوش آرامش نیک (قوری)',
+      'masala-tea':'چای ماسالا اصل',
+      'mojito':'موهیتو دست‌ساز نیک',
+      'nutella-shake':'میلک شیک نوتلا فندقی',
+      'carrot-cake':'کیک هویج و گردو خانگی',
+      'cheesecake':'چیزکیک سن سباستین'
+    };
+
+    const statusEl = document.getElementById('status');
+    const loginPanel = document.getElementById('login-panel');
+    const managerPanel = document.getElementById('manager-panel');
+    let db = null;
+
+    function setStatus(message, isError=false) {
+      statusEl.textContent = message;
+      statusEl.className = 'text-sm mt-5 text-center ' + (isError ? 'text-red-400' : 'text-emerald-400');
+    }
+    function configured() {
+      return !SUPABASE_URL.startsWith('YOUR_') && !SUPABASE_ANON_KEY.startsWith('YOUR_');
+    }
+    function showManager(show) {
+      loginPanel.classList.toggle('hidden', show);
+      managerPanel.classList.toggle('hidden', !show);
+    }
+    async function loadItems() {
+      setStatus('در حال دریافت قیمت‌ها...');
+      const {data, error} = await db.from('menu_items').select('id, price').order('id');
+      if (error) return setStatus('خطا در دریافت اطلاعات: ' + error.message, true);
+      const container = document.getElementById('items');
+      container.replaceChildren();
+      data.forEach(item => {
+        const row = document.createElement('form');
+        row.className = 'bg-stone-900 border border-amber-500/20 rounded-2xl p-4 flex items-center gap-3';
+        const info = document.createElement('div');
+        info.className = 'flex-1 min-w-0';
+        const name = document.createElement('div');
+        name.className = 'font-bold text-sm';
+        name.textContent = PRODUCT_NAMES[item.id] || item.id;
+        const hint = document.createElement('div');
+        hint.className = 'text-xs text-stone-400 mt-1';
+        hint.textContent = 'قیمت به تومان';
+        info.append(name, hint);
+        const input = document.createElement('input');
+        input.type = 'number'; input.min = '0'; input.step = '1000'; input.required = true;
+        input.value = item.price; input.setAttribute('aria-label', 'قیمت ' + (PRODUCT_NAMES[item.id] || item.id));
+        input.className = 'w-28 rounded-lg bg-stone-800 border border-stone-700 p-2 text-white text-left';
+        const button = document.createElement('button');
+        button.type = 'submit'; button.textContent = 'ذخیره';
+        button.className = 'rounded-lg bg-amber-500 text-black font-bold px-3 py-2 text-sm';
+        row.append(info, input, button);
+        row.addEventListener('submit', async event => {
+          event.preventDefault();
+          const price = Number(input.value);
+          if (!Number.isSafeInteger(price) || price < 0) return setStatus('لطفاً قیمت معتبر وارد کنید.', true);
+          button.disabled = true; button.textContent = '...';
+          const {error: updateError} = await db.from('menu_items').update({price}).eq('id', item.id);
+          button.disabled = false; button.textContent = 'ذخیره';
+          if (updateError) return setStatus('ذخیره انجام نشد: ' + updateError.message, true);
+          item.price = price;
+          setStatus('قیمت «' + (PRODUCT_NAMES[item.id] || item.id) + '» با موفقیت ذخیره شد.');
+        });
+        container.append(row);
+      });
+      setStatus('قیمت‌ها بارگذاری شدند.');
+    }
+
+    if (!configured()) {
+      setStatus('ابتدا آدرس پروژه و کلید عمومی Supabase را در کد این صفحه وارد کنید.', true);
+      document.querySelector('#login-form button').disabled = true;
+    } else {
+      db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      db.auth.getSession().then(({data}) => {
+        if (data.session) { showManager(true); loadItems(); }
+      });
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!db) return;
+      setStatus('در حال ورود...');
+      const {error} = await db.auth.signInWithPassword({
+        email: document.getElementById('email').value.trim(),
+        password: document.getElementById('password').value
+      });
+      if (error) return setStatus('ورود ناموفق بود. ایمیل و رمز عبور را بررسی کنید.', true);
+      showManager(true);
+      await loadItems();
+    });
+
+    document.getElementById('logout').addEventListener('click', async () => {
+      await db.auth.signOut();
+      showManager(false);
+      setStatus('از پنل خارج شدید.');
+    });
+  </script>
+</body>
+</html>
