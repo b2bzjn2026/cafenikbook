@@ -3,515 +3,223 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>پنل مدیریت جامع | کافه کتاب نیک</title>
+  <title>کافه کتاب نیک | گرمسار</title>
+  
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Vazirmatn', 'sans-serif'] },
+          colors: {
+            book: {
+              gold: '#E5A942',
+              green: '#4E7D63',
+              greenLight: '#A3C9A8',
+              card: 'rgba(24, 22, 20, 0.76)',
+              cardLight: 'rgba(38, 34, 30, 0.88)',
+              border: 'rgba(229, 169, 66, 0.18)'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    body { font-family: Vazirmatn, sans-serif; background: #0e0d0c; color: #f6f4f0; min-height: 100vh; }
-    .tab-btn.active { background: #f59e0b; color: #000; font-weight: 800; }
+    body { background-color: #0e0d0c; color: #f6f4f0; min-height: 100vh; position: relative; }
+    .bg-book-layer { position: fixed; inset: 0; z-index: -2; background-image: url('bg-cafe.jpg'), url('https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=1400&auto=format&fit=crop'); background-size: cover; background-position: center; filter: blur(9px); transform: scale(1.1); }
+    .bg-overlay { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at top, rgba(14,13,12,0.65) 0%, rgba(10,9,8,0.88) 100%); }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .category-btn.active-tab { background: linear-gradient(135deg, #E5A942, #C88627) !important; color: #0e0d0c !important; font-weight: 800; box-shadow: 0 4px 18px rgba(229, 169, 66, 0.4); border-color: #E5A942 !important; }
   </style>
 </head>
-<body class="p-4 pb-16">
-  <main class="max-w-2xl mx-auto py-6">
-    <header class="text-center mb-6">
-      <h1 class="text-2xl font-black text-amber-400">پنل مدیریت کافه کتاب نیک</h1>
-      <p id="role-subtitle" class="text-xs text-stone-400 mt-1.5">مدیریت کامل منو، قیمت‌ها و اطلاعات کافه</p>
-    </header>
+<body class="font-sans antialiased pb-24 selection:bg-book-gold selection:text-black">
 
-    <p id="status" role="status" class="text-xs mb-4 text-center min-h-[1.25rem]"></p>
+  <div class="bg-book-layer"></div>
+  <div class="bg-overlay"></div>
 
-    <!-- پنل ورود -->
-    <section id="login-panel" class="bg-stone-900 border border-amber-500/20 rounded-2xl p-6 max-w-md mx-auto">
-      <h2 class="font-bold text-lg mb-4">ورود مدیر</h2>
-      <form id="login-form" class="space-y-4">
-        <div>
-          <label class="block text-xs text-stone-300 mb-1.5">ایمیل مدیر</label>
-          <input id="email" type="email" autocomplete="username" required class="w-full rounded-xl bg-stone-800 border border-stone-700 p-3 text-sm text-white focus:border-amber-500 focus:outline-none" placeholder="admin@example.com">
+  <header class="pt-8 pb-4 px-4">
+    <div class="max-w-xl mx-auto text-center">
+      <div class="inline-block relative mb-3">
+        <div class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-book-gold via-book-greenLight/60 to-transparent shadow-2xl shadow-black/80 mx-auto overflow-hidden">
+          <img src="logo.jpg" onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=300&auto=format&fit=crop'" alt="لوگو" class="w-full h-full object-cover rounded-full border border-stone-800" />
         </div>
-        <div>
-          <label class="block text-xs text-stone-300 mb-1.5">رمز عبور</label>
-          <input id="password" type="password" autocomplete="current-password" required class="w-full rounded-xl bg-stone-800 border border-stone-700 p-3 text-sm text-white focus:border-amber-500 focus:outline-none" placeholder="رمز عبور">
-        </div>
-        <button class="w-full rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold p-3 text-sm transition" type="submit">ورود به پنل مدیریت</button>
-      </form>
-    </section>
-
-    <!-- پنل اصلی مدیریت -->
-    <section id="manager-panel" class="hidden space-y-5">
-      <!-- نوار ابزار بالا و تب‌ها -->
-      <div class="flex flex-wrap items-center justify-between gap-2 bg-stone-900/90 border border-stone-800 p-2 rounded-2xl">
-        <div class="flex items-center gap-1.5">
-          <button type="button" onclick="switchTab('menu')" id="tab-menu" class="tab-btn active px-3.5 py-2 rounded-xl text-xs transition">محصولات و منو</button>
-          <button type="button" onclick="switchTab('settings')" id="tab-settings" class="tab-btn px-3.5 py-2 rounded-xl text-xs text-stone-300 hover:bg-stone-800 transition">اطلاعات کافه</button>
-          <button type="button" onclick="switchTab('admins')" id="tab-admins" class="tab-btn hidden px-3.5 py-2 rounded-xl text-xs text-stone-300 hover:bg-stone-800 transition">مدیران (Owner)</button>
-        </div>
-        <button id="logout" type="button" class="text-xs text-red-400 hover:text-red-300 px-3 py-1.5 rounded-lg border border-red-500/20">خروج</button>
+        <span class="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-[#0e0d0c] rounded-full shadow-md"></span>
       </div>
 
-      <!-- تب ۱: مدیریت منو -->
-      <div id="view-menu" class="space-y-5">
-        <!-- فرم افزودن آیتم جدید -->
-        <div class="bg-stone-900 border border-amber-500/30 rounded-2xl p-4">
-          <button type="button" id="toggle-add-btn" class="w-full flex items-center justify-between text-right font-bold text-sm text-amber-400">
-            <span>+ افزودن آیتم جدید به منو</span>
-            <span id="toggle-add-icon" class="text-lg">+</span>
-          </button>
-
-          <form id="add-item-form" class="hidden mt-4 pt-4 border-t border-stone-800 space-y-3 text-xs">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-stone-300 mb-1">نام محصول *</label>
-                <input id="new-title" type="text" required placeholder="مثلاً: آمریکانو سرد" class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2.5 text-white">
-              </div>
-              <div>
-                <label class="block text-stone-300 mb-1">دسته‌بندی *</label>
-                <select id="new-category" class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2.5 text-white">
-                  <option value="coffee">قهوه و اسپرسو</option>
-                  <option value="tea">دمنوش و چای</option>
-                  <option value="cold">بار سرد و شیک</option>
-                  <option value="cake">کیک و دسر</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-stone-300 mb-1">قیمت (تومان) *</label>
-                <input id="new-price" type="number" min="0" step="1000" required placeholder="مثلاً: 75000" class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2.5 text-white text-left">
-              </div>
-              <div>
-                <label class="block text-stone-300 mb-1">برچسب ویژه (اختیاری)</label>
-                <input id="new-badge" type="text" placeholder="مثلاً: جدید، تازه پخت، پیشنهاد سرآشپز" class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2.5 text-white">
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-stone-300 mb-1">توضیحات کوتاه محصول</label>
-              <input id="new-desc" type="text" placeholder="توضیح ترکیبات یا طعم محصول..." class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2.5 text-white">
-            </div>
-
-            <div>
-              <label class="block text-stone-300 mb-1">آدرس تصویر یا نام فایل عکس (اختیاری)</label>
-              <input id="new-image" type="text" placeholder="مثلاً: https://... یا نام فایل عکس در گیت‌هاب" class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2.5 text-white text-left">
-              <p class="text-[11px] text-stone-400 mt-1">اگر خالی بگذارید، تصویر پیش‌فرض متناسب با دسته‌بندی نمایش داده می‌شود.</p>
-            </div>
-
-            <button type="submit" class="w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold p-3 text-sm transition">
-              ثبت و اضافه کردن به منو
-            </button>
-          </form>
-        </div>
-
-        <!-- لیست محصولات فعلی -->
-        <div class="flex items-center justify-between">
-          <h2 class="font-bold text-sm text-stone-200">لیست محصولات منو (<span id="items-count">0</span>)</h2>
-          <span class="text-[11px] text-stone-400">تغییرات بلافاصله در سایت اعمال می‌شوند</span>
-        </div>
-        <div id="items" class="space-y-3"></div>
+      <div class="flex items-center justify-center gap-2 mb-1">
+        <h1 class="text-3xl font-black tracking-tight text-white drop-shadow-md">کافه کتاب نیک</h1>
       </div>
 
-      <!-- تب ۲: تنظیمات و اطلاعات کافه -->
-      <div id="view-settings" class="hidden bg-stone-900 border border-amber-500/20 rounded-2xl p-5">
-        <h2 class="font-bold text-base text-amber-400 mb-4">ویرایش اطلاعات و متن‌های سایت</h2>
-        <form id="settings-form" class="space-y-3.5 text-xs">
-          <div>
-            <label class="block text-stone-300 mb-1">شعار زیر لوگو</label>
-            <input id="set-tagline" type="text" class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2.5 text-white">
-          </div>
-          <div>
-            <label class="block text-stone-300 mb-1">متن بج وضعیت بالای صفحه</label>
-            <input id="set-status-badge" type="text" class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2.5 text-white">
-          </div>
-          <div>
-            <label class="block text-stone-300 mb-1">متن کادر معرفی / اطلاعیه کافه</label>
-            <textarea id="set-announcement" rows="3" class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2.5 text-white"></textarea>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-stone-300 mb-1">شماره تماس</label>
-              <input id="set-phone" type="text" class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2.5 text-white text-left">
-            </div>
-            <div>
-              <label class="block text-stone-300 mb-1">نشانی کافه</label>
-              <input id="set-address" type="text" class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2.5 text-white">
-            </div>
-          </div>
-          <button type="submit" class="w-full rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold p-3 text-sm transition">
-            ذخیره اطلاعات کافه
-          </button>
-        </form>
-      </div>
+      <p id="cafe-tagline" class="text-xs text-book-greenLight font-medium mb-3 tracking-wide">اینجا دنیا یه رنگ دیگه است ☕️🌱</p>
 
-      <!-- تب ۳: مدیریت مدیران (فقط Owner) -->
-      <div id="view-admins" class="hidden bg-stone-900 border border-amber-500/20 rounded-2xl p-5 space-y-4">
-        <div>
-          <h2 class="font-bold text-base text-amber-400">مدیریت دسترسی مدیران</h2>
-          <p class="text-xs text-stone-400 mt-1">ابتدا حساب مدیر جدید را در بخش Authentication > Users در Supabase بسازید و User UID آن را اینجا وارد کنید.</p>
-        </div>
-        <form id="add-admin-form" class="flex gap-2">
-          <input id="new-admin-uid" type="text" required placeholder="User UID مدیر جدید (مثلاً: a1b2c3d4-...)" class="flex-1 rounded-xl bg-stone-800 border border-stone-700 p-2.5 text-xs text-white text-left">
-          <button type="submit" class="rounded-xl bg-amber-500 text-black font-bold px-4 py-2 text-xs">افزودن مدیر</button>
-        </form>
-        <div id="admins-list" class="space-y-2"></div>
+      <div class="flex items-center justify-center gap-2 text-xs mb-4">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/70 backdrop-blur-md text-emerald-300 border border-emerald-500/30 text-[11px]">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          <span id="cafe-status-badge">کافه دنج مطالعه، کتاب، قهوه و نوشیدنی</span>
+        </span>
       </div>
-    </section>
+    </div>
+  </header>
 
-    <a href="./index.html" class="block text-center text-amber-400 hover:underline text-xs mt-8">مشاهده صفحه اصلی منوی کافه ←</a>
+  <section class="max-w-xl mx-auto px-4 mt-2 mb-3">
+    <div class="relative mb-3">
+      <input type="text" id="menu-search" oninput="filterAndSearch()" placeholder="جستجوی قهوه، دسر، غذا یا عنوان..." 
+             class="w-full py-3 pr-10 pl-4 bg-book-card backdrop-blur-md border border-book-border rounded-2xl text-xs text-white placeholder-stone-400 focus:outline-none focus:border-book-gold transition shadow-inner">
+    </div>
+
+    <div class="bg-book-card backdrop-blur-md p-3.5 rounded-2xl border border-book-border shadow-lg flex items-center gap-3">
+      <p id="cafe-announcement" class="text-[11px] text-stone-300 leading-relaxed">
+        کافه کتاب نیک؛ گوشه‌ای دنج در گرمسار برای همنشینی با کتاب‌های برگزیده، عطر قهوه تازه و آرامش یک فنجان چای و گفتگو.
+      </p>
+    </div>
+  </section>
+
+  <!-- تب‌های دسته‌بندی پویا (به صورت خودکار بر اساس گروه‌های دیتابیس ساخته می‌شوند) -->
+  <nav class="sticky top-0 z-30 bg-[#0e0d0c]/85 backdrop-blur-xl py-2.5 border-y border-book-border">
+    <div class="max-w-xl mx-auto px-4">
+      <div id="category-tabs" class="flex items-center gap-1.5 overflow-x-auto hide-scrollbar text-xs font-medium pe-2">
+        <!-- تب‌ها به صورت پویا با جاوااسکریپت اینجا قرار می‌گیرند -->
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-xl mx-auto px-4 mt-5">
+    <div id="menu-container" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+      <!-- اقلام منو به صورت زنده لود می‌شوند -->
+    </div>
   </main>
+
+  <footer id="location" class="max-w-xl mx-auto px-4 mt-8 space-y-3">
+    <div class="bg-book-card backdrop-blur-md rounded-2xl p-4 border border-book-border space-y-3 shadow-2xl">
+      <h3 class="text-sm font-bold text-white">نشانی و دسترسی</h3>
+      <p id="cafe-address" class="text-xs text-stone-200 leading-relaxed">سمنان، گرمسار، انتهای خیابان تختی، خانه کتاب نیک</p>
+      <div class="flex justify-between items-center text-xs pt-2 border-t border-book-border">
+        <span class="text-stone-300">تلفن تماس:</span>
+        <a id="cafe-phone-text" href="tel:+982334245599" class="font-bold text-book-gold tracking-wider">۰۲۳-۳۴۲۴۵۵۹۹</a>
+      </div>
+    </div>
+  </footer>
 
   <script>
     const SUPABASE_URL = 'https://nandayycunxhlwpemvno.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_yEmf0-1PWxJ0poGaXxaSeg_fuhO7YOD';
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const FALLBACK_NAMES = {
-      'espresso': 'اسپرسو دوبل تخصصی',
-      'latte': 'کافه لاته / کارامل لاته',
-      'herbal-tea': 'دمنوش آرامش نیک (قوری)',
-      'masala-tea': 'چای ماسالا اصل',
-      'mojito': 'موهیتو دست‌ساز نیک',
-      'nutella-shake': 'میلک شیک نوتلا فندقی',
-      'carrot-cake': 'کیک هویج و گردو خانگی',
-      'cheesecake': 'چیزکیک سن سباستین'
-    };
+    let allMenuItems = [];
+    let currentCategory = 'all';
 
-    const CATEGORY_LABELS = {
+    const CATEGORY_NAMES = {
+      'all': 'همه آیتم‌ها',
       'coffee': 'قهوه و اسپرسو',
       'tea': 'دمنوش و چای',
       'cold': 'بار سرد و شیک',
-      'cake': 'کیک و دسر'
+      'cake': 'کیک و دسر',
+      'fastfood': 'فست‌فود و غذا',
+      'warm-food': 'غذای گرم'
     };
 
-    const statusEl = document.getElementById('status');
-    const loginPanel = document.getElementById('login-panel');
-    const managerPanel = document.getElementById('manager-panel');
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    let currentUserRole = 'admin';
+    function escapeHtml(str) { return String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
 
-    function setStatus(message, isError = false) {
-      statusEl.textContent = message;
-      statusEl.className = 'text-xs mb-4 text-center min-h-[1.25rem] ' + (isError ? 'text-red-400' : 'text-emerald-400');
+    async function loadSiteData() {
+      // بارگذاری تنظیمات کافه
+      const { data: settings } = await db.from('cafe_settings').select('*').eq('id', 1).maybeSingle();
+      if (settings) {
+        if (settings.tagline) document.getElementById('cafe-tagline').textContent = settings.tagline;
+        if (settings.status_badge) document.getElementById('cafe-status-badge').textContent = settings.status_badge;
+        if (settings.announcement) document.getElementById('cafe-announcement').textContent = settings.announcement;
+        if (settings.address) document.getElementById('cafe-address').textContent = settings.address;
+        if (settings.phone) document.getElementById('cafe-phone-text').textContent = settings.phone;
+      }
+
+      // بارگذاری محصولات منو
+      const { data, error } = await db.from('menu_items').select('*').order('sort_order', { ascending: true });
+      if (error || !data) return;
+
+      allMenuItems = data;
+      buildCategoryTabs();
+      renderMenu();
     }
 
-    function switchTab(tab) {
-      ['menu', 'settings', 'admins'].forEach(t => {
-        document.getElementById('view-' + t).classList.toggle('hidden', t !== tab);
-        const btn = document.getElementById('tab-' + t);
-        if (btn) btn.classList.toggle('active', t === tab);
+    function buildCategoryTabs() {
+      const cats = ['all', ...new Set(allMenuItems.map(i => i.category || 'coffee'))];
+      const tabsContainer = document.getElementById('category-tabs');
+      tabsContainer.replaceChildren();
+
+      cats.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `category-btn px-4 py-2.5 rounded-xl whitespace-nowrap transition bg-book-card border border-book-border text-stone-300 shrink-0 ${cat === currentCategory ? 'active-tab' : ''}`;
+        btn.textContent = CATEGORY_NAMES[cat] || cat.toUpperCase();
+        btn.onclick = () => {
+          currentCategory = cat;
+          document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active-tab'));
+          btn.classList.add('active-tab');
+          renderMenu();
+        };
+        tabsContainer.append(btn);
       });
     }
 
-    document.getElementById('toggle-add-btn').addEventListener('click', () => {
-      const form = document.getElementById('add-item-form');
-      const icon = document.getElementById('toggle-add-icon');
-      const isHidden = form.classList.toggle('hidden');
-      icon.textContent = isHidden ? '+' : '−';
-    });
+    function renderMenu() {
+      const query = document.getElementById('menu-search').value.trim().toLowerCase();
+      const container = document.getElementById('menu-container');
 
-    async function initDashboard(session) {
-      loginPanel.classList.add('hidden');
-      managerPanel.classList.remove('hidden');
+      const filtered = allMenuItems.filter(item => {
+        const matchCat = (currentCategory === 'all' || item.category === currentCategory);
+        const title = (item.title || item.id).toLowerCase();
+        const desc = (item.description || '').toLowerCase();
+        const matchSearch = (title.includes(query) || desc.includes(query));
+        return matchCat && matchSearch;
+      });
 
-      // بررسی نقش کاربر (owner یا admin)
-      const { data: roleData } = await db
-        .from('admin_users')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      currentUserRole = roleData?.role || 'admin';
-      document.getElementById('role-subtitle').textContent =
-        currentUserRole === 'owner' ? 'دسترسی: مدیر اصلی (Owner)' : 'دسترسی: مدیر کافه (Admin)';
-
-      if (currentUserRole === 'owner') {
-        document.getElementById('tab-admins').classList.remove('hidden');
-        loadAdmins();
+      if (filtered.length === 0) {
+        container.innerHTML = `<p class="col-span-full text-center text-xs text-stone-400 py-8">موردی یافت نشد.</p>`;
+        return;
       }
 
-      await Promise.all([loadItems(), loadSettings()]);
-    }
-
-    async function loadItems() {
-      setStatus('در حال دریافت لیست محصولات...');
-      const { data, error } = await db
-        .from('menu_items')
-        .select('*')
-        .order('sort_order', { ascending: true })
-        .order('id', { ascending: true });
-
-      if (error) return setStatus('خطا در دریافت اطلاعات: ' + error.message, true);
-
-      document.getElementById('items-count').textContent = data.length;
-      const container = document.getElementById('items');
-      container.replaceChildren();
-
-      data.forEach(item => {
-        const displayTitle = item.title || FALLBACK_NAMES[item.id] || item.id;
+      container.innerHTML = filtered.map(item => {
+        const title = item.title || item.id;
         const isAvailable = item.is_available !== false;
+        const price = new Intl.NumberFormat('fa-IR').format(item.price);
+        const imgSrc = item.image_url && item.image_url.trim() ? item.image_url.trim() : 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?q=80&w=350&auto=format&fit=crop';
 
-        const card = document.createElement('div');
-        card.className = 'bg-stone-900 border border-stone-800 hover:border-amber-500/30 rounded-2xl p-4 space-y-3 transition';
+        let badge = '';
+        if (!isAvailable) badge = `<span class="text-[9px] bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded-md font-bold">ناموجود</span>`;
+        else if (item.badge) badge = `<span class="text-[9px] bg-amber-500/20 text-book-gold px-1.5 py-0.5 rounded-md font-bold">${escapeHtml(item.badge)}</span>`;
 
-        // ردیف اصلی: نام، دسته، قیمت و دکمه ذخیره سریع
-        const topRow = document.createElement('div');
-        topRow.className = 'flex flex-wrap items-center justify-between gap-2';
-
-        const info = document.createElement('div');
-        info.className = 'flex-1 min-w-[160px]';
-        info.innerHTML = `
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-sm text-white">${escapeHtml(displayTitle)}</span>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-stone-800 text-stone-300">${CATEGORY_LABELS[item.category] || 'منو'}</span>
-            ${!isAvailable ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-300">ناموجود</span>' : ''}
-          </div>
-          <p class="text-[11px] text-stone-400 mt-1 line-clamp-1">${escapeHtml(item.description || '')}</p>
-        `;
-
-        const quickActions = document.createElement('div');
-        quickActions.className = 'flex items-center gap-2';
-
-        const priceInput = document.createElement('input');
-        priceInput.type = 'number';
-        priceInput.min = '0';
-        priceInput.step = '1000';
-        priceInput.value = item.price;
-        priceInput.className = 'w-28 rounded-xl bg-stone-800 border border-stone-700 p-2 text-sm text-white text-left';
-
-        const savePriceBtn = document.createElement('button');
-        savePriceBtn.type = 'button';
-        savePriceBtn.textContent = 'ذخیره قیمت';
-        savePriceBtn.className = 'rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold px-3 py-2 text-xs transition';
-        savePriceBtn.onclick = async () => {
-          const price = Number(priceInput.value);
-          if (!Number.isSafeInteger(price) || price < 0) return setStatus('قیمت معتبر وارد کنید.', true);
-          savePriceBtn.disabled = true;
-          const { error: err } = await db.from('menu_items').update({ price }).eq('id', item.id);
-          savePriceBtn.disabled = false;
-          if (err) return setStatus('خطا در ذخیره قیمت: ' + err.message, true);
-          setStatus(`قیمت «${displayTitle}» ذخیره شد.`);
-        };
-
-        const editToggleBtn = document.createElement('button');
-        editToggleBtn.type = 'button';
-        editToggleBtn.textContent = 'ویرایش جزئیات';
-        editToggleBtn.className = 'rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 px-3 py-2 text-xs transition';
-
-        quickActions.append(priceInput, savePriceBtn, editToggleBtn);
-        topRow.append(info, quickActions);
-        card.append(topRow);
-
-        // بخش ویرایش کامل (نام، توضیحات، دسته، برچسب، تصویر، موجودی و حذف)
-        const editBox = document.createElement('form');
-        editBox.className = 'hidden pt-3 border-t border-stone-800 space-y-3 text-xs';
-        editBox.innerHTML = `
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <div>
-              <label class="block text-stone-400 mb-1">نام محصول</label>
-              <input name="title" type="text" required value="${escapeAttr(displayTitle)}" class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2 text-white">
+        return `
+          <div class="menu-item bg-book-card backdrop-blur-md rounded-2xl p-3 border border-book-border flex gap-3.5 shadow-xl ${!isAvailable ? 'opacity-65' : ''}">
+            <div class="w-24 h-24 rounded-xl overflow-hidden shrink-0 border border-white/10">
+              <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(title)}" class="w-full h-full object-cover" />
             </div>
-            <div>
-              <label class="block text-stone-400 mb-1">دسته‌بندی</label>
-              <select name="category" class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2 text-white">
-                <option value="coffee" ${item.category === 'coffee' ? 'selected' : ''}>قهوه و اسپرسو</option>
-                <option value="tea" ${item.category === 'tea' ? 'selected' : ''}>دمنوش و چای</option>
-                <option value="cold" ${item.category === 'cold' ? 'selected' : ''}>بار سرد و شیک</option>
-                <option value="cake" ${item.category === 'cake' ? 'selected' : ''}>کیک و دسر</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class="block text-stone-400 mb-1">توضیحات محصول</label>
-            <input name="description" type="text" value="${escapeAttr(item.description || '')}" class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2 text-white">
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <div>
-              <label class="block text-stone-400 mb-1">برچسب (تگ)</label>
-              <input name="badge" type="text" value="${escapeAttr(item.badge || '')}" placeholder="مثلاً: تازه پخت" class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2 text-white">
-            </div>
-            <div>
-              <label class="block text-stone-400 mb-1">لینک یا نام فایل تصویر</label>
-              <input name="image_url" type="text" value="${escapeAttr(item.image_url || '')}" class="w-full rounded-xl bg-stone-800 border border-stone-700 p-2 text-white text-left">
-            </div>
-          </div>
-          <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
-            <label class="inline-flex items-center gap-2 cursor-pointer">
-              <input name="is_available" type="checkbox" ${isAvailable ? 'checked' : ''} class="rounded bg-stone-800 border-stone-600 text-amber-500">
-              <span class="text-stone-200">موجود در منو</span>
-            </label>
-            <div class="flex items-center gap-2">
-              <button type="button" class="delete-btn rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 px-3 py-2 font-bold">حذف محصول</button>
-              <button type="submit" class="rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black px-4 py-2 font-bold">ذخیره تغییرات</button>
+            <div class="flex-1 flex flex-col justify-between py-0.5">
+              <div>
+                <div class="flex items-start justify-between gap-1">
+                  <h3 class="font-bold text-sm text-white">${escapeHtml(title)}</h3>
+                  ${badge}
+                </div>
+                <p class="text-[11px] text-stone-300 mt-1 line-clamp-2">${escapeHtml(item.description || '')}</p>
+              </div>
+              <div class="text-left font-bold text-book-gold text-sm pt-1">
+                <span>${price}</span> <span class="text-[10px] text-stone-400 font-normal">تومان</span>
+              </div>
             </div>
           </div>
         `;
-
-        editToggleBtn.onclick = () => editBox.classList.toggle('hidden');
-
-        editBox.addEventListener('submit', async e => {
-          e.preventDefault();
-          const fd = new FormData(editBox);
-          const updates = {
-            title: fd.get('title').toString().trim(),
-            category: fd.get('category').toString(),
-            description: fd.get('description').toString().trim(),
-            badge: fd.get('badge').toString().trim(),
-            image_url: fd.get('image_url').toString().trim(),
-            is_available: editBox.querySelector('[name="is_available"]').checked,
-            price: Number(priceInput.value)
-          };
-          const { error: err } = await db.from('menu_items').update(updates).eq('id', item.id);
-          if (err) return setStatus('خطا در ویرایش: ' + err.message, true);
-          setStatus(`تغییرات «${updates.title}» ذخیره شد.`);
-          loadItems();
-        });
-
-        editBox.querySelector('.delete-btn').onclick = async () => {
-          if (!confirm(`آیا از حذف «${displayTitle}» مطمئن هستید؟`)) return;
-          const { error: err } = await db.from('menu_items').delete().eq('id', item.id);
-          if (err) return setStatus('حذف انجام نشد: ' + err.message, true);
-          setStatus(`«${displayTitle}» از منو حذف شد.`);
-          loadItems();
-        };
-
-        card.append(editBox);
-        container.append(card);
-      });
-
-      setStatus('منو بارگذاری شد.');
+      }).join('');
     }
 
-    // ثبت محصول جدید
-    document.getElementById('add-item-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const title = document.getElementById('new-title').value.trim();
-      const category = document.getElementById('new-category').value;
-      const price = Number(document.getElementById('new-price').value);
-      const badge = document.getElementById('new-badge').value.trim();
-      const description = document.getElementById('new-desc').value.trim();
-      const image_url = document.getElementById('new-image').value.trim();
-
-      if (!title || !Number.isSafeInteger(price) || price < 0) {
-        return setStatus('لطفاً نام و قیمت معتبر وارد کنید.', true);
-      }
-
-      const id = 'item-' + Date.now();
-      setStatus('در حال افزودن محصول جدید...');
-
-      const { error } = await db.from('menu_items').insert({
-        id,
-        title,
-        category,
-        price,
-        badge,
-        description,
-        image_url,
-        is_available: true,
-        sort_order: 50
-      });
-
-      if (error) return setStatus('خطا در افزودن محصول (مطمئن شوید کد SQL جدید را اجرا کرده‌اید): ' + error.message, true);
-
-      e.target.reset();
-      document.getElementById('add-item-form').classList.add('hidden');
-      document.getElementById('toggle-add-icon').textContent = '+';
-      setStatus(`محصول جدید «${title}» با موفقیت به منو اضافه شد!`);
-      loadItems();
-    });
-
-    // تنظیمات کافه
-    async function loadSettings() {
-      const { data } = await db.from('cafe_settings').select('*').eq('id', 1).maybeSingle();
-      if (!data) return;
-      document.getElementById('set-tagline').value = data.tagline || '';
-      document.getElementById('set-status-badge').value = data.status_badge || '';
-      document.getElementById('set-announcement').value = data.announcement || '';
-      document.getElementById('set-phone').value = data.phone || '';
-      document.getElementById('set-address').value = data.address || '';
+    function filterAndSearch() {
+      renderMenu();
     }
 
-    document.getElementById('settings-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const updates = {
-        tagline: document.getElementById('set-tagline').value.trim(),
-        status_badge: document.getElementById('set-status-badge').value.trim(),
-        announcement: document.getElementById('set-announcement').value.trim(),
-        phone: document.getElementById('set-phone').value.trim(),
-        address: document.getElementById('set-address').value.trim()
-      };
-      const { error } = await db.from('cafe_settings').update(updates).eq('id', 1);
-      if (error) return setStatus('خطا در ذخیره تنظیمات: ' + error.message, true);
-      setStatus('اطلاعات کافه با موفقیت به‌روزرسانی شد.');
-    });
-
-    // مدیریت مدیران (فقط Owner)
-    async function loadAdmins() {
-      const { data, error } = await db.from('admin_users').select('*');
-      if (error) return;
-      const list = document.getElementById('admins-list');
-      list.replaceChildren();
-      data.forEach(adm => {
-        const row = document.createElement('div');
-        row.className = 'flex items-center justify-between bg-stone-800/80 p-3 rounded-xl text-xs';
-        row.innerHTML = `
-          <div>
-            <span class="font-mono text-stone-200">${escapeHtml(adm.user_id)}</span>
-            <span class="mr-2 px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">${adm.role}</span>
-          </div>
-        `;
-        if (adm.role !== 'owner') {
-          const delBtn = document.createElement('button');
-          delBtn.type = 'button';
-          delBtn.textContent = 'حذف دسترسی';
-          delBtn.className = 'text-red-400 hover:underline';
-          delBtn.onclick = async () => {
-            await db.from('admin_users').delete().eq('user_id', adm.user_id);
-            loadAdmins();
-            setStatus('دسترسی مدیر حذف شد.');
-          };
-          row.append(delBtn);
-        }
-        list.append(row);
-      });
-    }
-
-    document.getElementById('add-admin-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const uid = document.getElementById('new-admin-uid').value.trim();
-      const { error } = await db.from('admin_users').insert({ user_id: uid, role: 'admin' });
-      if (error) return setStatus('خطا در افزودن مدیر: ' + error.message, true);
-      e.target.reset();
-      loadAdmins();
-      setStatus('مدیر جدید اضافه شد.');
-    });
-
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-    }
-    function escapeAttr(str) {
-      return escapeHtml(str);
-    }
-
-    db.auth.getSession().then(({ data }) => {
-      if (data.session) initDashboard(data.session);
-    });
-
-    document.getElementById('login-form').addEventListener('submit', async event => {
-      event.preventDefault();
-      setStatus('در حال ورود...');
-      const { data, error } = await db.auth.signInWithPassword({
-        email: document.getElementById('email').value.trim(),
-        password: document.getElementById('password').value
-      });
-      if (error) return setStatus('ورود ناموفق بود. ایمیل و رمز عبور را بررسی کنید.', true);
-      await initDashboard(data.session);
-    });
-
-    document.getElementById('logout').addEventListener('click', async () => {
-      await db.auth.signOut();
-      managerPanel.classList.add('hidden');
-      loginPanel.classList.remove('hidden');
-      setStatus('از پنل خارج شدید.');
-    });
+    document.addEventListener('DOMContentLoaded', loadSiteData);
   </script>
 </body>
 </html>
