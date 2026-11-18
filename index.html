@@ -457,15 +457,12 @@
     }
   </script>
 
-
   <!-- بارگذاری قیمت‌های به‌روز از پایگاه داده -->
   <script>
-    // این دو مقدار را از Project Settings > API در پنل Supabase بردارید.
-    const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const SUPABASE_URL = 'https://nandayycunxhlwpemvno.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_yEmf0-1PWxJ0poGaXxaSeg_fuhO7YOD';
 
     async function loadLatestPrices() {
-      if (SUPABASE_URL.startsWith('YOUR_') || SUPABASE_ANON_KEY.startsWith('YOUR_')) return;
       const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       const { data, error } = await client.from('menu_items').select('id, price');
       if (error) {
